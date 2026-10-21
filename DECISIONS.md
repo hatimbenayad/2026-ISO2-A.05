@@ -10,7 +10,7 @@ Meeting minutes: https://github.com/hatimbenayad/2026-ISO2-A.05/wiki/Minutes-of-
 
 Related issues: https://github.com/hatimbenayad/2026-ISO2-A.05/issues/6
 
-Related sub-issues: #7, #8, #9, #10
+Related sub-issues: https://github.com/hatimbenayad/2026-ISO2-A.05/issues/7, https://github.com/hatimbenayad/2026-ISO2-A.05/issues/8, https://github.com/hatimbenayad/2026-ISO2-A.05/issues/9, https://github.com/hatimbenayad/2026-ISO2-A.05/issues/10
 
 Context: The team identified an initial set of actors and functional requirements. These requirements still needed to be checked against the project statement for completeness and correctness.
 
