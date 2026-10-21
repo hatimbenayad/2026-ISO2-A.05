@@ -1,11 +1,22 @@
 ## Meeting 01 — Initial Project Discussion
 
-AYÇA GÖRGÜLÜ will be in charged of creating the Physicians use case diagram. 
+D-001 — General Use Case diagram.
 
-MINA ÖZDOGAN will be in charged of creating the Patients use case diagram. 
+Date: 19/10/2026
 
-HATIM BEN AYAD will be in charged of creating the Administrative/admissions personnel use case diagram. 
+Iteration: 1
 
-FELIPE DIONISIO BECERRA SANGEORZAN will be in charged of creating the System administrators use case diagram. 
+Meeting minutes: https://github.com/hatimbenayad/2026-ISO2-A.05/wiki/Minutes-of-meetings
 
-When every assigned use case diagram is done, a member of the group will be selected to unify them in order to obtain the general use case diagram.
+Related issues: https://github.com/hatimbenayad/2026-ISO2-A.05/issues/6
+
+Context: Creation of the general use case diagram.
+
+Decision: Each member will do a use case diagram of a functional requierement, then a member will be selected to unify those scatter use cases diagrams in order to create the General use case diagram.
+
+Reason: Better work effiency due to different schedules.
+
+Alternatives considered: None
+
+Consequences: None
+
