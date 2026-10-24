@@ -31,3 +31,11 @@ UC · RF · Phase · Module · Minutes (linked to wiki)
 | Testing | | | 
 
 | Total | | | 
+
+### Estimation assumptions 
+
+
+
+
+
+
