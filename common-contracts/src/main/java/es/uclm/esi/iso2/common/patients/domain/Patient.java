@@ -16,7 +16,7 @@ public class Patient {
     private String firstName;
     private String lastName;
     private LocalDate birthDate;
-    private Sex sex;
+    private Gender gender;
     private String phone;
     private String email;
     private String address;
@@ -27,7 +27,7 @@ public class Patient {
     /** Patient with only the mandatory data. */
     public Patient(String id, String nationalId, String healthCardNumber, String firstName, String lastName,
             LocalDate birthDate, LocalDateTime registeredAt) {
-        this(id, nationalId, healthCardNumber, firstName, lastName, birthDate, Sex.UNSPECIFIED, null, null, null,
+        this(id, nationalId, healthCardNumber, firstName, lastName, birthDate, Gender.UNSPECIFIED, null, null, null,
                 registeredAt);
     }
 
@@ -83,12 +83,12 @@ public class Patient {
         this.birthDate = birthDate;
     }
 
-    public Sex getSex() {
-        return sex;
+    public Gender getGender() {
+        return gender;
     }
 
-    public void setSex(Sex sex) {
-        this.sex = sex;
+    public void setGender(Gender gender) {
+        this.gender = gender;
     }
 
     public String getPhone() {
