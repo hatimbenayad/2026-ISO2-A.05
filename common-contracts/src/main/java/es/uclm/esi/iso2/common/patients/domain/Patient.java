@@ -32,14 +32,15 @@ public class Patient {
     }
 
     public Patient(String id, String nationalId, String healthCardNumber, String firstName, String lastName,
-            LocalDate birthDate, Sex sex, String phone, String email, String address, LocalDateTime registeredAt) {
+            LocalDate birthDate, Gender gender, String phone, String email, String address,
+            LocalDateTime registeredAt) {
         this.id = id;
         this.nationalId = nationalId;
         this.healthCardNumber = healthCardNumber;
         this.firstName = firstName;
         this.lastName = lastName;
         this.birthDate = birthDate;
-        this.sex = sex;
+        this.gender = gender;
         this.phone = phone;
         this.email = email;
         this.address = address;

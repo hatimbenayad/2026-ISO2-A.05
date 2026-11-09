@@ -9,7 +9,7 @@ import es.uclm.esi.iso2.common.patients.contracts.PatientRegistryException;
 import es.uclm.esi.iso2.common.patients.contracts.PatientRegistryFailureReason;
 import es.uclm.esi.iso2.common.patients.domain.Patient;
 import es.uclm.esi.iso2.common.patients.domain.PatientStatus;
-import es.uclm.esi.iso2.common.patients.domain.Sex;
+import es.uclm.esi.iso2.common.patients.domain.Gender;
 import es.uclm.esi.iso2.common.patients.dto.PatientDto;
 import es.uclm.esi.iso2.common.patients.dto.PatientRegistrationRequest;
 import es.uclm.esi.iso2.common.patients.dto.PatientUpdateRequest;
@@ -44,12 +44,12 @@ class PatientRegistryServiceTest {
     }
 
     private static PatientRegistrationRequest request(String nationalId) {
-        return new PatientRegistrationRequest(nationalId, "CLM0001", "Ana", "Ruiz Test", BIRTH, Sex.FEMALE,
+        return new PatientRegistrationRequest(nationalId, "CLM0001", "Ana", "Ruiz Test", BIRTH, Gender.FEMALE,
                 "600000000", "ana@test.test", "Calle Mayor 1");
     }
 
     private static PatientUpdateRequest update(String firstName, LocalDate birthDate) {
-        return new PatientUpdateRequest(firstName, "Ruiz Test", birthDate, Sex.FEMALE, "", "ana.new@test.test",
+        return new PatientUpdateRequest(firstName, "Ruiz Test", birthDate, Gender.FEMALE, "", "ana.new@test.test",
                 "Calle Toledo 2");
     }
 
@@ -83,7 +83,7 @@ class PatientRegistryServiceTest {
                 () -> assertEquals("12345678Z", result.nationalId()),
                 () -> assertEquals("CLM0001", result.healthCardNumber()),
                 () -> assertEquals("Ana", result.firstName()),
-                () -> assertEquals(Sex.UNSPECIFIED, result.sex()),
+                () -> assertEquals(Gender.UNSPECIFIED, result.gender()),
                 () -> assertNull(result.phone()),
                 () -> assertNull(result.email()));
     }
@@ -101,7 +101,7 @@ class PatientRegistryServiceTest {
     void registerWithoutMandatoryDataIsRejected(String nationalId, String card, String firstName, String lastName) {
         // Arrange
         PatientRegistrationRequest incomplete = new PatientRegistrationRequest(nationalId, card, firstName, lastName,
-                BIRTH, Sex.FEMALE, null, null, null);
+                BIRTH, Gender.FEMALE, null, null, null);
 
         // Act
         PatientRegistryException exception =
@@ -125,7 +125,7 @@ class PatientRegistryServiceTest {
     }
 
     private static PatientRegistrationRequest bornOn(LocalDate birthDate) {
-        return new PatientRegistrationRequest("12345678Z", "CLM0001", "Ana", "Ruiz Test", birthDate, Sex.FEMALE,
+        return new PatientRegistrationRequest("12345678Z", "CLM0001", "Ana", "Ruiz Test", birthDate, Gender.FEMALE,
                 null, null, null);
     }
 

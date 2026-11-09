@@ -23,7 +23,7 @@ class PatientTest {
 
     @BeforeEach
     void setUp() {
-        patient = new Patient("PAT-0001", "12345678Z", "CLM0001", "Ana", "Ruiz Test", BIRTH, Sex.FEMALE,
+        patient = new Patient("PAT-0001", "12345678Z", "CLM0001", "Ana", "Ruiz Test", BIRTH, Gender.FEMALE,
                 "600000000", "ana@test.test", "Calle Mayor 1, Ciudad Real", REGISTERED);
     }
 
@@ -43,14 +43,14 @@ class PatientTest {
     }
 
     @Test
-    @DisplayName("A patient created with only the mandatory data has no contact data and an unspecified sex")
+    @DisplayName("A patient created with only the mandatory data has no contact data and an unspecified gender")
     void patientWithMandatoryDataOnly() {
         // Act
         Patient minimal = new Patient("PAT-0002", "87654321X", "CLM0002", "Luis", "Gómez Test", BIRTH, REGISTERED);
 
         // Assert
         assertAll(
-                () -> assertEquals(Sex.UNSPECIFIED, minimal.getSex()),
+                () -> assertEquals(Gender.UNSPECIFIED, minimal.getGender()),
                 () -> assertNull(minimal.getPhone()),
                 () -> assertNull(minimal.getEmail()),
                 () -> assertNull(minimal.getAddress()),

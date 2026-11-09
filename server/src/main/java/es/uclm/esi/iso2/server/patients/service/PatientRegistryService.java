@@ -4,7 +4,7 @@ import es.uclm.esi.iso2.common.patients.contracts.IPatientRegistryService;
 import es.uclm.esi.iso2.common.patients.contracts.PatientRegistryException;
 import es.uclm.esi.iso2.common.patients.contracts.PatientRegistryFailureReason;
 import es.uclm.esi.iso2.common.patients.domain.Patient;
-import es.uclm.esi.iso2.common.patients.domain.Sex;
+import es.uclm.esi.iso2.common.patients.domain.Gender;
 import es.uclm.esi.iso2.common.patients.dto.PatientDto;
 import es.uclm.esi.iso2.common.patients.dto.PatientRegistrationRequest;
 import es.uclm.esi.iso2.common.patients.dto.PatientUpdateRequest;
@@ -41,9 +41,9 @@ public class PatientRegistryService implements IPatientRegistryService {
         }
 
         Patient patient = new Patient(patientRepository.nextId(), nationalId, request.healthCardNumber().trim(),
-                request.firstName().trim(), request.lastName().trim(), request.birthDate(), sexOrDefault(request.sex()),
-                emptyToNull(request.phone()), emptyToNull(request.email()), emptyToNull(request.address()),
-                LocalDateTime.now(clock));
+                request.firstName().trim(), request.lastName().trim(), request.birthDate(),
+                genderOrDefault(request.gender()), emptyToNull(request.phone()), emptyToNull(request.email()),
+                emptyToNull(request.address()), LocalDateTime.now(clock));
         patientRepository.save(patient);
         return PatientDto.from(patient);
     }
@@ -57,7 +57,7 @@ public class PatientRegistryService implements IPatientRegistryService {
         patient.setFirstName(request.firstName().trim());
         patient.setLastName(request.lastName().trim());
         patient.setBirthDate(request.birthDate());
-        patient.setSex(sexOrDefault(request.sex()));
+        patient.setGender(genderOrDefault(request.gender()));
         patient.setPhone(emptyToNull(request.phone()));
         patient.setEmail(emptyToNull(request.email()));
         patient.setAddress(emptyToNull(request.address()));
@@ -133,8 +133,8 @@ public class PatientRegistryService implements IPatientRegistryService {
         return nationalId.trim().toUpperCase();
     }
 
-    private static Sex sexOrDefault(Sex sex) {
-        return sex == null ? Sex.UNSPECIFIED : sex;
+    private static Gender genderOrDefault(Gender gender) {
+        return gender == null ? Gender.UNSPECIFIED : gender;
     }
 
     private static String emptyToNull(String value) {
