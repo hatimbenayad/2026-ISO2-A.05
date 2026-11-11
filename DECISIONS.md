@@ -126,7 +126,8 @@ This file is also context for the AI agent: it must follow these decisions and n
 4. `cliente-movil`: Mobile client interfaces and notification receivers (depends on `common-contracts`).  
 **Alternatives:** Single monolithic Maven project; two separate repositories for client and server.  
 **Reason:** Allows independent compilation and testing while sharing a unified build lifecycle (`mvn clean verify`). Ensures client and server share identical contract definitions without code duplication.  
-**Consequences:** Hatim scaffolds the root `pom.xml` and submodule directory structures in Elaboration (Milestone 2).
+**Consequences:** Hatim scaffolds the root `pom.xml` and submodule directory structures in Elaboration (Milestone 2).  
+**Status:** Updated by D-017: the build has `common-contracts`, `server` and `client`.
 
 ---
 
@@ -187,3 +188,14 @@ This file is also context for the AI agent: it must follow these decisions and n
 **Alternatives:** Scheduling uniform weekly hours without accounting for holidays or exams.  
 **Reason:** Avoids unrealistic sprint plans and prevents delivery crunches during exam periods.  
 **Consequences:** Formalized in `Planification.md` §11 and reflected in GitHub Milestones M0 through M5.
+
+---
+
+### D-017 · `common-contracts` module and core domain of the architectural baseline
+**Date:** 09/11/2026 · **Iteration:** 1 · **Minutes:** [Meeting 4](https://github.com/hatimbenayad/2026-ISO2-A.05/wiki/Minutes-of-meetings) · **Issues:** [#44](https://github.com/hatimbenayad/2026-ISO2-A.05/issues/44), [#45](https://github.com/hatimbenayad/2026-ISO2-A.05/issues/45)  
+**Context:** D-011 planned `common-contracts`, `servidor`, `cliente-web` and `cliente-movil`, but the build merged in PR #49 has `es.uclm.esi.iso2:radiodiagnostics` with `server` and `client`. Client and server need a shared contract for the core entities of It1.  
+**Decision:** Add a `common-contracts` module that `server` and `client` depend on, keeping the names `server` and `client`. Code is organised by component and layer under `es.uclm.esi.iso2`: `common.access` (Role, User, AuthSession and their DTOs), `common.patients` (Patient, MedicalRecord, their DTOs and the `IPatientRegistryService` contract of CU19), `common.orders` (ExaminationOrder with its Priority and OrderStatus, and its DTO) and `server.patients` (repository and service). The Physician → Patient generalization (D-007) is kept in `Role.includes`, not with class inheritance. Until the database is chosen (A08), patients are stored in memory.  
+**Alternatives:** Renaming the modules to `servidor`/`cliente-web` (it would break the merged build and the CI); putting everything in `server` (the client would not have the contract).  
+**Reason:** The client only depends on interfaces and DTOs ("the Engineer designs the Interfaces; the AI implements the Contracts"), and the existing build changes as little as possible.  
+**Consequences:** `mvn verify` builds `common-contracts` first. New components follow the same packages, and their mock adapters go in `server`. The design diagrams are made in Visual Paradigm (D-005) and stored in `docs/diagrams/design/` as the project file and its exported image: `It1-baseline-design.vpp` and `.png` (classes) and `CU19-register-patient-communication.vpp` and `.png` (communication of CU19).
+
