@@ -78,7 +78,8 @@ This file is also context for the AI agent: it must follow these decisions and n
 **Decision:** In the client use case model, the `Physician` actor inherits from (specializes) the `Patient` actor. This grants physicians inherent access to patient record consultation without duplicating use case definitions.  
 **Alternatives:** Creating duplicate use cases under Physician with identical logic; creating an abstract `HealthcareUser` superclass.  
 **Reason:** Avoids visual clutter and functional duplication in the use case model; mirrors real-world healthcare privilege inheritance.  
-**Consequences:** Handled in Issue #28. Mina and Ayça collaborate on the boundary connection in `GeneralClientDiagram.vpp`.
+**Consequences:** Handled in Issue #28. Mina and Ayça collaborate on the boundary connection in `GeneralClientDiagram.vpp`.  
+**Status:** Clarified by D-018 (exact CU01–CU09 inheritance scope, own-care boundary, and clinical exclusions; corrects RF02/RF03 reference to RF01/RF06).
 
 ---
 
@@ -126,7 +127,8 @@ This file is also context for the AI agent: it must follow these decisions and n
 4. `cliente-movil`: Mobile client interfaces and notification receivers (depends on `common-contracts`).  
 **Alternatives:** Single monolithic Maven project; two separate repositories for client and server.  
 **Reason:** Allows independent compilation and testing while sharing a unified build lifecycle (`mvn clean verify`). Ensures client and server share identical contract definitions without code duplication.  
-**Consequences:** Hatim scaffolds the root `pom.xml` and submodule directory structures in Elaboration (Milestone 2).
+**Consequences:** Hatim scaffolds the root `pom.xml` and submodule directory structures in Elaboration (Milestone 2).  
+**Status:** Updated by D-017 (initialized as `es.uclm.esi.iso2:radiodiagnostics` with `server` and `client` in PR #49, expanded with `common-contracts` in Elaboration).
 
 ---
 
@@ -186,4 +188,63 @@ This file is also context for the AI agent: it must follow these decisions and n
 - Transition Phase (v1.0.0): December 9 – December 15, 2026 (concluding with Final Lab Deliverable submission on December 15).  
 **Alternatives:** Scheduling uniform weekly hours without accounting for holidays or exams.  
 **Reason:** Avoids unrealistic sprint plans and prevents delivery crunches during exam periods.  
-**Consequences:** Formalized in `Planification.md` §11 and reflected in GitHub Milestones M0 through M5.
+**Consequences:** Formalized in `Planification.md` §11 and reflected in GitHub Milestones M0 through M5.  
+**Status:** Construction version range refined by D-020 (`v0.2.0`–`v0.4.0`, monotonically progressing to `v1.0.0`).
+
+---
+
+### D-017 · Multi-module Maven architecture reconciliation (`common-contracts`, `server`, `client`)
+**Date:** 09/11/2026 · **Iteration:** 1 · **Minutes:** [Meeting 3](https://github.com/hatimbenayad/2026-ISO2-A.05/wiki/Minutes-of-meetings) & [Meeting 4](https://github.com/hatimbenayad/2026-ISO2-A.05/wiki/Minutes-of-meetings) · **Issues:** [#41](https://github.com/hatimbenayad/2026-ISO2-A.05/issues/41), [#42](https://github.com/hatimbenayad/2026-ISO2-A.05/issues/42), [#44](https://github.com/hatimbenayad/2026-ISO2-A.05/issues/44), [#45](https://github.com/hatimbenayad/2026-ISO2-A.05/issues/45), PR [#49](https://github.com/hatimbenayad/2026-ISO2-A.05/pull/49), PR [#52](https://github.com/hatimbenayad/2026-ISO2-A.05/pull/52)  
+**Context:** D-011 initially envisioned four modules (`common-contracts`, `servidor`, `cliente-web`, `cliente-movil`) under `es.uclm.sescam`. To avoid premature over-engineering and establish a clean CI baseline, PR #49 initialized the root Maven POM under `es.uclm.esi.iso2:radiodiagnostics` (`packaging: pom`, Java 21, JUnit 6.1.3) with two English-named modules: `server` and `client`. Subsequently, Elaboration work (Issue #45 / PR #52) introduced shared POJO domain entities, DTOs, and service contracts needed by both tiers.  
+**Decision:** Standardize the repository structure on three modules — `common-contracts`, `server`, and `client` — under groupId `es.uclm.esi.iso2` and Java 21:
+- `common-contracts`: Shared zero-dependency domain entities (`common.access`, `common.patients`, `common.orders`), DTOs, and service/adapter contracts (`IPatientRegistryService` for CU19).
+- `server`: Backend services, repositories (`server.patients`, using in-memory storage until database selection under A08), and simulated external healthcare adapters (`E01`–`E04`).
+- `client`: Client UI presentation layer (desktop/web/mobile client views unified cleanly under `client`, avoiding redundant split modules).
+Code is organized by component package (`es.uclm.esi.iso2.{common|server|client}.<component>`), with Physician → Patient actor generalization (`D-007`) represented via `Role.includes` rather than class inheritance. Design models (`.vpp` and `.png`) are maintained in `docs/diagrams/design/` (starting with `It1-baseline-design.vpp`/`.png` and `CU19-register-patient-communication.vpp`/`.png`).  
+**Alternatives:** Splitting `client` prematurely into empty `cliente-web` and `cliente-movil` modules before Iteration 4; placing shared contracts inside `server` (creating tight coupling).  
+**Reason:** Honors "the Engineer designs the Interfaces; the AI implements the Contracts" (`D-014`), prevents circular dependencies, keeps all identifiers in English, and preserves minimal module complexity without unused empty subprojects.  
+**Consequences:** Both `server` and `client` declare dependency on `common-contracts`. `Planification.md` and Elaboration issues align their module naming to `common-contracts`, `server`, and `client`.
+
+---
+
+### D-018 · Scope and clinical exclusions of Physician–Patient actor generalization
+**Date:** 10/11/2026 · **Iteration:** 1 · **Minutes:** [Meeting 3](https://github.com/hatimbenayad/2026-ISO2-A.05/wiki/Minutes-of-meetings) · **Issues:** [#28](https://github.com/hatimbenayad/2026-ISO2-A.05/issues/28), [#36](https://github.com/hatimbenayad/2026-ISO2-A.05/issues/36), PR [#51](https://github.com/hatimbenayad/2026-ISO2-A.05/pull/51)  
+**Context:** While reviewing the combined Patient–Physician client use-case diagram (`D-007`), the team analyzed the specification clause granting physicians *"all applicable Patient features"* (Spec p. 2). Pure UML actor generalization (`Physician ──▷ Patient`) structurally inherits all ovals (`CU01–CU09`), whereas in clinical practice certain patient interactions are inapplicable to a physician acting professionally. Additionally, Issue #36 listed an unmapped task (`CU18 (Emergency Override) «extend» CU12 (Consult Medical History)`), whereas the team's approved RF/CU catalogue defines `CU12` as *Manage procedure orders* and `CU18` as *Consult order metrics*.  
+**Decision:** Retain the `Physician ──▷ Patient` generalization connector in `patient-physician-use-cases.vpp` (PR #51) and enforce the following formal semantics and exclusions:
+1. **Inherited scope (Own Care vs. Clinical Role):** Under UML generalization, `CU01–CU09` apply strictly to the physician's **own personal appointments and care as a patient** (plus shared notifications `CU05` and follow-up guidelines `CU09`), **never** to view or alter other patients' records. Access to assigned patients' clinical data and orders is provided exclusively via `CU10–CU18` (`CU12–CU15`).
+2. **Clinical role exclusions & mappings across `CU01–CU09`:**
+   - `CU01` (*Consult scheduled appointments*): Own agenda/appointments inherited; staff execution schedules accessed via `CU13`.
+   - `CU02` (*Confirm appointment*), `CU03` (*Request rescheduling*), `CU04` (*Cancel appointment*): Excluded from clinical role (patient-only personal actions; physicians cancel clinical *orders* via `CU12`).
+   - `CU05` (*Receive notifications & reminders*): Shared notification delivery for own care / clinical alerts.
+   - `CU06` (*Consult procedure history*): Own history inherited; assigned patients' reports and medical images accessed via `CU14`/`CU15`.
+   - `CU07` (*Submit incident report*): Excluded from clinical workflow and replaced by `CU17` (*Document incident*).
+   - `CU08` (*Complete satisfaction survey*): Excluded from clinical role (strictly patient experience feedback).
+   - `CU09` (*Consult follow-up information & guidelines*): Inherited and applied alongside follow-up protocol ordering (`CU11`).
+3. **Correction to D-007 references:** Patient appointment consultation and procedure history map to `RF01`/`CU01` and `RF06`/`CU06` (not `RF02`/`RF03`).
+4. **Exclusion of `CU18 «extend» CU12` from #36:** Rejected because no "Emergency Override" or "Consult Medical History" use case exists in `RF01–RF32`.  
+**Alternatives:** Keeping Physician and Patient completely disconnected in the diagram (which omits applicable reuse and contradicts Kickoff Slide 25); creating duplicate ovals; adding unmapped features outside `RF01–RF32`.  
+**Reason:** Preserves clean UML generalization (`D-007`), prevents scope creep (`C07`, `C08`), documents the exact meaning of *"applicable"*, and establishes clear authorization boundaries (`Role.includes`) for implementation.  
+**Consequences:** Authorization rules on server services must scope `CU01–CU09` to self-ownership (`userId == targetPatientAccount`) and require `PHYSICIAN` role privileges for assigned patient data in `CU10–CU18`.
+
+---
+
+### D-019 · Multi-platform build standardization via Maven Wrapper and CI
+**Date:** 10/11/2026 · **Iteration:** 1 · **Minutes:** [Meeting 3](https://github.com/hatimbenayad/2026-ISO2-A.05/wiki/Minutes-of-meetings) · **Issues:** [#42](https://github.com/hatimbenayad/2026-ISO2-A.05/issues/42), [#43](https://github.com/hatimbenayad/2026-ISO2-A.05/issues/43), PR [#49](https://github.com/hatimbenayad/2026-ISO2-A.05/pull/49), PR [#53](https://github.com/hatimbenayad/2026-ISO2-A.05/pull/53)  
+**Context:** Following setup of the multi-module Maven build and GitHub Actions CI workflow (`.github/workflows/maven.yml` running `mvn -B verify` under JDK 21), team members on Windows, macOS, and Linux needed deterministic local builds without manual global Maven installation and mismatched versions.  
+**Decision:** Standardize project compilation and JUnit 6.1.3 test execution on **Maven Wrapper 3.3.4 pinned to Maven 3.9.16** (`only-script` distribution via `./mvnw` and `.\mvnw.cmd`). Enforce Unix LF (`mvnw`) and Windows CRLF (`*.cmd`) line endings via `.gitattributes`, ignore local IDE folders (`.vscode/`, `.idea/`) and Maven `target/` outputs in `.gitignore`, and gate merges to `develop`/`main` on a passing GitHub Actions `mvn -B verify` check.  
+**Alternatives:** Requiring each member to manually install matching Maven binaries; committing wrapper `.jar` binaries directly to Git.  
+**Reason:** Guarantees zero build discrepancy across developer OSes, keeps binary artifacts out of Git, and satisfies Issue #43 verification requirements.  
+**Consequences:** All members only require **JDK 21** locally and run `./mvnw clean verify` (Linux/macOS) or `.\mvnw.cmd clean verify` (Windows) before pushing commits.
+
+---
+
+### D-020 · Semantic Versioning 2.0.0 release progression and Git Flow branch preservation
+**Date:** 10/11/2026 · **Iteration:** 1 · **Minutes:** [Meeting 4](https://github.com/hatimbenayad/2026-ISO2-A.05/wiki/Minutes-of-meetings) · **Issues:** [#31](https://github.com/hatimbenayad/2026-ISO2-A.05/issues/31), [#41](https://github.com/hatimbenayad/2026-ISO2-A.05/issues/41), [#42](https://github.com/hatimbenayad/2026-ISO2-A.05/issues/42)  
+**Context:** Per Git & GitHub Slides 4–6, 19–23 and Kickoff Slide 9, the project tracks both overall system release tags on `main` and independent Maven submodule versions (`common-contracts`, `server`, `client`), while preserving complete branch history in GitHub Network/Insights for course evaluation. Additionally, D-016 listed a wide version gap (`v0.2.0–v0.8.0`) across three Construction iterations.  
+**Decision:** Establish a monotonic Semantic Versioning 2.0.0 release cadence and explicit branch preservation policy:
+1. **System Releases (`main` annotated tags via `release/X.Y.Z`):** `v0.0.1` (Inception setup patch) → `v0.1.0` (Elaboration architectural baseline) → `v0.2.0` (Construction I) → `v0.3.0` (Construction II) → `v0.4.0` (Construction III) → `v1.0.0` (Transition production release on 15/12/2026). Critical post-release fixes branch via `hotfix/X.Y.Z`, bump `PATCH` (e.g., `v0.1.1`), and sync back to `develop`. When bumping the root `pom.xml` version in `release/X.Y.Z`, update `<parent><version>` identically in every submodule `pom.xml` (`server`, `client`, and `common-contracts`).
+2. **Submodule Versions & Use-Case Branches (`pom.xml`):** Modules start at `1.0.0-SNAPSHOT` and advance `MINOR` upon delivering a backward-compatible use case (`1.1.0`, `1.2.0`, ...) or `PATCH` for fixes (`1.0.1`). Starting in Construction (`It2`), each use-case parent issue tracks per-module sub-issues and feature branches (e.g., `feature/CUxx-server`, `feature/CUxx-client`).
+3. **Git Flow Branch Preservation (Kickoff Slide 9):** Feature (`feature/*`), bugfix (`bugfix/*`), and release (`release/*`) branches are **never deleted after merging** so complete branching history stays auditable in GitHub Insights. Feature testing fixes remain on their active `feature/*` branch (`fix(CUxx): ...`), whereas post-merge fixes on `develop` use `bugfix/*`.  
+**Alternatives:** Deleting feature branches after PR merge; skipping intermediate MINOR tags (`v0.4.0/v0.6.0/v0.8.0`).  
+**Reason:** Aligns `Planification.md`, `pom.xml`, and SCM governance 100% with the instructor's rubric (Kickoff Slide 9 & 20).  
+**Consequences:** Updates `D-016`'s Construction version targets to `v0.2.0–v0.4.0`; Release Coordinator tags `main` via `git tag -a vX.Y.Z` on milestone closure without deleting branches.
