@@ -78,7 +78,8 @@ This file is also context for the AI agent: it must follow these decisions and n
 **Decision:** In the client use case model, the `Physician` actor inherits from (specializes) the `Patient` actor. This grants physicians inherent access to patient record consultation without duplicating use case definitions.  
 **Alternatives:** Creating duplicate use cases under Physician with identical logic; creating an abstract `HealthcareUser` superclass.  
 **Reason:** Avoids visual clutter and functional duplication in the use case model; mirrors real-world healthcare privilege inheritance.  
-**Consequences:** Handled in Issue #28. Mina and Ayça collaborate on the boundary connection in `GeneralClientDiagram.vpp`.
+**Consequences:** Handled in Issue #28. Mina and Ayça collaborate on the boundary connection in `GeneralClientDiagram.vpp`.  
+**Status:** Clarified by D-018 (exact CU01–CU09 inheritance scope, own-care boundary, and clinical exclusions; corrects RF02/RF03 reference to RF01/RF06).
 
 ---
 

@@ -1,0 +1,3 @@
+# Keep the line endings that each Maven Wrapper script needs, whatever the OS of the member
+/mvnw text eol=lf
+*.cmd text eol=crlf
