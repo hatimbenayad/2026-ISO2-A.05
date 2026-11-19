@@ -140,4 +140,12 @@ class ExaminationOrderTest {
                 () -> assertEquals(order.hashCode(), sameId.hashCode()),
                 () -> assertNotEquals(order, otherId));
     }
+        @Test
+    @DisplayName("An order is not equal to null or to an object of another class")
+    void orderIsNotEqualToNullOrOtherClasses() {
+        assertAll(
+                () -> assertNotEquals(order, null),
+                () -> assertNotEquals(order, "not-an-order"),
+                () -> assertEquals(order, order));
+    }
 }
