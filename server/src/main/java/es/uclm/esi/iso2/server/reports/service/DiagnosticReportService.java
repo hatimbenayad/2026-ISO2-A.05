@@ -1,97 +1,106 @@
 package es.uclm.esi.iso2.server.reports.service;
 
+import es.uclm.esi.iso2.common.orders.domain.ExaminationOrder;
+import es.uclm.esi.iso2.common.orders.domain.OrderStatus;
 import es.uclm.esi.iso2.common.reports.ClinicalIncidentDto;
 import es.uclm.esi.iso2.common.reports.DiagnosticReportDto;
 import es.uclm.esi.iso2.common.reports.ReportStatus;
 import es.uclm.esi.iso2.common.reports.UnauthorizedSignatureException;
+import es.uclm.esi.iso2.common.reports.contracts.IDiagnosticReportService;
+import es.uclm.esi.iso2.common.reports.domain.DiagnosticReport;
+import es.uclm.esi.iso2.server.orders.persistence.IOrderRepository;
+import es.uclm.esi.iso2.server.reports.persistence.IReportRepository;
+import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class DiagnosticReportService {
-    private final ConcurrentMap<String, DiagnosticReportDto> reports = new ConcurrentHashMap<>();
+public class DiagnosticReportService implements IDiagnosticReportService {
+    private final IReportRepository reportRepository;
+    private final IOrderRepository orderRepository;
+    private final Clock clock;
     private final ConcurrentMap<String, List<ClinicalIncidentDto>> incidents = new ConcurrentHashMap<>();
     private final Set<String> emergencyPatients = ConcurrentHashMap.newKeySet();
     private final AtomicInteger reportSequence = new AtomicInteger();
 
-    public DiagnosticReportDto createDraft(String orderId, String patientId, String physicianId,
-            String findings, String impression) {
+    public DiagnosticReportService(IReportRepository reportRepository, IOrderRepository orderRepository, Clock clock) {
+        this.reportRepository = Objects.requireNonNull(reportRepository, "reportRepository");
+        this.orderRepository = Objects.requireNonNull(orderRepository, "orderRepository");
+        this.clock = Objects.requireNonNull(clock, "clock");
+    }
+
+    @Override
+    public DiagnosticReportDto createReport(String orderId, String findings, String impression) {
         validateRequired(orderId, "Order ID");
-        validateRequired(patientId, "Patient ID");
-        validateRequired(physicianId, "Physician ID");
         validateRequired(findings, "Findings");
         validateRequired(impression, "Impression");
 
-        String reportId = "REPORT-" + reportSequence.incrementAndGet();
-        DiagnosticReportDto report = new DiagnosticReportDto(reportId, orderId.trim(), patientId.trim(),
-                physicianId.trim(), findings.trim(), impression.trim(), ReportStatus.DRAFT, null);
-        reports.put(reportId, report);
-        return report;
-    }
-
-    public DiagnosticReportDto createDraft(String orderId, String patientId, String physicianId, String findings) {
-        validateRequired(orderId, "Order ID");
-        validateRequired(patientId, "Patient ID");
-        validateRequired(physicianId, "Physician ID");
-        validateRequired(findings, "Findings");
-        String reportId = "REPORT-" + reportSequence.incrementAndGet();
-        DiagnosticReportDto report = new DiagnosticReportDto(reportId, orderId.trim(), patientId.trim(),
-                physicianId.trim(), findings.trim(), "", ReportStatus.DRAFT, null);
-        reports.put(reportId, report);
-        return report;
-    }
-
-    public DiagnosticReportDto updateFindings(String reportId, String newFindings, String newImpression) {
-        validateRequired(reportId, "Report ID");
-        validateRequired(newFindings, "Findings");
-        validateRequired(newImpression, "Impression");
-        DiagnosticReportDto report = requireReport(reportId);
-        if (report.status() == ReportStatus.REPORTED || report.status() == ReportStatus.ARCHIVED) {
-            throw new IllegalStateException("Cannot modify a finalized report");
+        String normalizedOrderId = orderId.trim();
+        ExaminationOrder order = orderRepository.findById(normalizedOrderId);
+        if (order == null) {
+            throw new NoSuchElementException("Order not found: " + orderId);
         }
-        DiagnosticReportDto updated = new DiagnosticReportDto(report.reportId(), report.orderId(),
-                report.patientId(), report.physicianId(), newFindings.trim(), newImpression.trim(),
-                report.status(), report.signedAt());
-        reports.put(reportId, updated);
-        return updated;
+        if (order.getOrderStatus() != OrderStatus.PERFORMED) {
+            throw new IllegalStateException("Only performed orders can be reported");
+        }
+        if (reportRepository.findByOrderId(normalizedOrderId) != null) {
+            throw new IllegalStateException("The order already has a report");
+        }
+
+        String reportId = "REPORT-" + reportSequence.incrementAndGet();
+        DiagnosticReport report = new DiagnosticReport(reportId, normalizedOrderId, order.getPatientId(),
+                order.getPhysicianId(), findings.trim(), impression.trim(), LocalDateTime.now(clock));
+        reportRepository.save(report);
+        return DiagnosticReportDto.from(report);
     }
 
-    public DiagnosticReportDto signReport(String reportId, String physicianId, String signatureToken) {
+    @Override
+    public DiagnosticReportDto updateReport(String reportId, String findings, String impression) {
         validateRequired(reportId, "Report ID");
-        DiagnosticReportDto report = requireReport(reportId);
-        if (report.status() == ReportStatus.REPORTED || report.status() == ReportStatus.ARCHIVED) {
+        validateRequired(findings, "Findings");
+        validateRequired(impression, "Impression");
+
+        DiagnosticReport report = requireReport(reportId);
+        report.update(findings.trim(), impression.trim());
+        reportRepository.update(report);
+        return DiagnosticReportDto.from(report);
+    }
+
+    @Override
+    public DiagnosticReportDto finalizeReport(String reportId, String physicianSignatureToken) {
+        validateRequired(reportId, "Report ID");
+        DiagnosticReport report = requireReport(reportId);
+        if (report.getStatus() != ReportStatus.DRAFT) {
             throw new IllegalStateException("Cannot sign an already finalized report");
         }
-        if (isBlank(physicianId) || isBlank(signatureToken)
-                || !report.physicianId().equals(physicianId.trim())) {
+        if (isBlank(physicianSignatureToken)) {
             throw new UnauthorizedSignatureException("Invalid or unauthorized signature credentials");
         }
-        DiagnosticReportDto signed = new DiagnosticReportDto(report.reportId(), report.orderId(),
-                report.patientId(), report.physicianId(), report.findings(), report.impression(),
-                ReportStatus.REPORTED, LocalDateTime.now());
-        reports.put(reportId, signed);
-        return signed;
+
+        ExaminationOrder order = orderRepository.findById(report.getOrderId());
+        if (order == null) {
+            throw new NoSuchElementException("Order not found: " + report.getOrderId());
+        }
+        order.setOrderStatus(OrderStatus.REPORTED);
+
+        report.finalizeReport(LocalDateTime.now(clock));
+        reportRepository.update(report);
+        orderRepository.update(order);
+        return DiagnosticReportDto.from(report);
     }
 
     public DiagnosticReportDto archiveReport(String reportId) {
         validateRequired(reportId, "Report ID");
-        DiagnosticReportDto report = requireReport(reportId);
-        if (report.status() == ReportStatus.ARCHIVED) {
-            throw new IllegalStateException("Report is already archived");
-        }
-        if (report.status() == ReportStatus.DRAFT) {
-            throw new IllegalStateException("Cannot archive a draft report");
-        }
-        DiagnosticReportDto archived = new DiagnosticReportDto(report.reportId(), report.orderId(),
-                report.patientId(), report.physicianId(), report.findings(), report.impression(),
-                ReportStatus.ARCHIVED, report.signedAt());
-        reports.put(reportId, archived);
-        return archived;
+        DiagnosticReport report = requireReport(reportId);
+        report.archive();
+        reportRepository.update(report);
+        return DiagnosticReportDto.from(report);
     }
 
     public void logClinicalIncident(String patientId, ClinicalIncidentDto incident) {
@@ -125,11 +134,11 @@ public class DiagnosticReportService {
 
     public DiagnosticReportDto getReport(String reportId) {
         validateRequired(reportId, "Report ID");
-        return requireReport(reportId);
+        return DiagnosticReportDto.from(requireReport(reportId));
     }
 
-    private DiagnosticReportDto requireReport(String reportId) {
-        DiagnosticReportDto report = reports.get(reportId.trim());
+    private DiagnosticReport requireReport(String reportId) {
+        DiagnosticReport report = reportRepository.findById(reportId.trim());
         if (report == null) {
             throw new NoSuchElementException("Report not found: " + reportId);
         }
