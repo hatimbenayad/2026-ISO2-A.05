@@ -19,7 +19,7 @@ public interface IDiagnosticReportService {
     /**
      * Updates a DRAFT report.
      *
-     * @throws IllegalArgumentException if an input is null or blank
+     * @throws IllegalArgumentException if the report id is null or blank
      * @throws NoSuchElementException if the report is unknown
      * @throws IllegalStateException if the report is not DRAFT
      */
