@@ -67,14 +67,14 @@ class DiagnosticReportServiceTest {
     }
 
     @Test
-    @DisplayName("BVA-REP-01: valid signature transitions report to REPORTED")
+    @DisplayName("BVA-REP-01: valid signature transitions report to FINALIZED")
     void testSignReportTransitionsToReported() {
         DiagnosticReportDto report = service.createDraft("ORD-1", "PAT-1", "DOC-1",
                 "Finding", "Impression");
 
         DiagnosticReportDto signed = service.signReport(report.reportId(), "DOC-1", "SIGN-TOKEN");
 
-        assertEquals(ReportStatus.REPORTED, signed.status());
+        assertEquals(ReportStatus.FINALIZED, signed.status());
         assertNotNull(signed.signedAt());
     }
 

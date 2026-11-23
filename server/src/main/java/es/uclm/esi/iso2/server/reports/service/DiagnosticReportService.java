@@ -51,7 +51,7 @@ public class DiagnosticReportService {
         validateRequired(newFindings, "Findings");
         validateRequired(newImpression, "Impression");
         DiagnosticReportDto report = requireReport(reportId);
-        if (report.status() == ReportStatus.REPORTED || report.status() == ReportStatus.ARCHIVED) {
+        if (report.status() == ReportStatus.FINALIZED || report.status() == ReportStatus.ARCHIVED) {
             throw new IllegalStateException("Cannot modify a finalized report");
         }
         DiagnosticReportDto updated = new DiagnosticReportDto(report.reportId(), report.orderId(),
@@ -64,7 +64,7 @@ public class DiagnosticReportService {
     public DiagnosticReportDto signReport(String reportId, String physicianId, String signatureToken) {
         validateRequired(reportId, "Report ID");
         DiagnosticReportDto report = requireReport(reportId);
-        if (report.status() == ReportStatus.REPORTED || report.status() == ReportStatus.ARCHIVED) {
+        if (report.status() == ReportStatus.FINALIZED || report.status() == ReportStatus.ARCHIVED) {
             throw new IllegalStateException("Cannot sign an already finalized report");
         }
         if (isBlank(physicianId) || isBlank(signatureToken)
@@ -73,7 +73,7 @@ public class DiagnosticReportService {
         }
         DiagnosticReportDto signed = new DiagnosticReportDto(report.reportId(), report.orderId(),
                 report.patientId(), report.physicianId(), report.findings(), report.impression(),
-                ReportStatus.REPORTED, LocalDateTime.now());
+                ReportStatus.FINALIZED, LocalDateTime.now());
         reports.put(reportId, signed);
         return signed;
     }
