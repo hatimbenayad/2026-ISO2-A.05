@@ -19,7 +19,7 @@ public interface IDiagnosticReportService {
     /**
      * Updates a DRAFT report.
      *
-     * @throws IllegalArgumentException if the report id is null or blank
+     * @throws IllegalArgumentException if an input is null or blank
      * @throws NoSuchElementException if the report is unknown
      * @throws IllegalStateException if the report is not DRAFT
      */
@@ -28,7 +28,7 @@ public interface IDiagnosticReportService {
     /**
      * Validates the signature token, finalizes the report and marks its order REPORTED.
      *
-     * @throws IllegalArgumentException if an input is null or blank
+     * @throws IllegalArgumentException if the report id is null or blank
      * @throws NoSuchElementException if the report is unknown
      * @throws IllegalStateException if the report or order has the wrong status, or the order is already reported
      * @throws UnauthorizedSignatureException if the signature token is missing
