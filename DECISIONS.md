@@ -326,7 +326,7 @@ Team members log AI-assisted engineering sessions in the project time-tracking w
 
 ---
 
-### D-038 · Repository Administrator Ruleset Bypass and Coordinator Pull Request Approval Protocol
+### D-027 · Repository Administrator Ruleset Bypass and Coordinator Pull Request Approval Protocol
 **Date:** 22/11/2026 · **Iteration:** 1 · **Minutes:** [Meeting 06](https://github.com/hatimbenayad/2026-ISO2-A.05/wiki/Minutes-of-meetings) · **Issues:** PR [#4](https://github.com/hatimbenayad/ISO2-2026-GrupoA05-Testing-P1/pull/4), PR [#101](https://github.com/hatimbenayad/2026-ISO2-A.05/pull/101)  
 **Context:** Under Decision D-009, Pull Requests targeting `develop` require peer approval. However, during critical synchronization windows, emergency merge conflict resolutions (e.g., binary `.png` conflicts in PR #101), or administrative scaffolding, waiting for peer availability can stall team velocity. The Project Coordinator discussed this workflow with practical instructor **Ismael Caballero**, who confirmed that administrator bypass is fully acceptable provided the team works responsibly and maintains rigorous oversight.  
 **Decision:** Enable `Repository admin` bypass on GitHub Ruleset `24678480` for the Project Coordinator (`@hatimbenayad`). The coordinator is authorized to approve and merge pull requests when:
